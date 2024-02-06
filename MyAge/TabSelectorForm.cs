@@ -8,13 +8,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace MyAge
 {
-    public partial class Form2 : Form
+    public partial class TabSelectorForm : Form
     {
-        public Form2()
+        public TabSelectorForm()
         {
             InitializeComponent();
         }
@@ -130,8 +129,8 @@ namespace MyAge
             // set the resultTableLayout visible
             resultTableLayout.Visible = true;
 
-            // set bornYearShamsiLabel
-            bornYearShamsiLabel.Text = yearBorn.ToString();
+            // set bornYearShamsiLabel like this 01/01 - 29/12 (1399)
+            bornYearShamsiLabel.Text = "01/01 - 29/12 (" + yearBorn.ToString() + ")";
 
             // set bornYearGregorianLabel
             bornYearMiladiLabel.Text = yearBornGregorian.ToString() + " - " + (yearBornGregorian + 1).ToString();
@@ -162,8 +161,11 @@ namespace MyAge
 
             // set the errorInfoLabel text to blank
             errorInfoLabel.Text = "";
-            
+
             string compareDateStr = compareMaskedTextbox.Text;
+
+            // change the saparator from , to .
+            compareDateStr = compareDateStr.Replace(",", ".");
 
             // the compareMaskedTextbox is a date time, so we can convert it to DateTime
             DateTime compareDate;
@@ -176,6 +178,10 @@ namespace MyAge
 
             // set the errorInfoLabel text to blank
             errorInfoLabel.Text = "";
+
+            // simulate the data culculated again by disabling and enabling the resultTableLayout
+            resultTableLayout.Visible = false;
+            resultTableLayout.Visible = true;
 
             // get the first day of the year value from its label
             string firstDayOfBornYear = firstDayOfBornYearLabel.Text;
@@ -288,6 +294,127 @@ namespace MyAge
 
                 // call the compareBtn_Click event
                 compareBtn_Click(sender, e);
+            }
+        }
+
+        private void resetBtn_Click(object sender, EventArgs e)
+        {
+            // set the ageTextbox, yearTextbox, compareMaskedTextbox text to blank
+            ageTextbox.Text = "";
+            yearTextbox.Text = "";
+            compareMaskedTextbox.Text = "";
+
+            // unvisible the resultTableLayout
+            resultTableLayout.Visible = false;
+        }
+
+        private void convertShamsiBtn_Click(object sender, EventArgs e)
+        {
+            // unvisible the resultShamsiLbl
+            resultShamsiLbl.Visible = false;
+
+            // check if the shamsiMaskedTextbox is validated or not
+            if (!shamsiMaskedText.MaskCompleted)
+            {
+                // set focus to shamsiMaskedTextbox
+                shamsiMaskedText.Focus();
+
+                // enable the resultShamsiLbl
+                resultShamsiLbl.Enabled = true;
+
+                // set the resultShamsiLbl text to persian please enter a valid date
+                resultShamsiLbl.Text = "لطفا تاریخ صحیح وارد کنید";
+
+                // visible the resultShamsiLbl
+                resultShamsiLbl.Visible = true;
+                return;
+            }
+
+            // set the ResultShamsiLbl text to blank
+            resultShamsiLbl.Text = "";
+
+            // get the shamsiMaskedText value
+            string shamsiDateStr = shamsiMaskedText.Text;
+            shamsiDateStr = shamsiDateStr.Replace(",", ".");
+
+            // create a new instance of PersianCalendar and initialize it with the yearBorn
+            PersianCalendar pc = new PersianCalendar();
+
+            // split the shamsiDateStr by . and convert it to integer
+            int year = Convert.ToInt32(shamsiDateStr.Split('.')[2]);
+            int month = Convert.ToInt32(shamsiDateStr.Split('.')[1]);
+            int day = Convert.ToInt32(shamsiDateStr.Split('.')[0]);
+
+            // now we can convert the shamsiDateStr to DateTime
+            DateTime shamsiDateTime = pc.ToDateTime(year, month, day, 0, 0, 0, 0);
+
+            // set the resultShamsiLbl text to the shamsiDateTime
+
+            resultShamsiLbl.Text = "نتیجه: " + shamsiDateTime.ToString("dd.MM.yyyy") + " (dd.mm.YYYY)";
+
+            // Enable the resultShamsiLbl
+            resultShamsiLbl.Enabled = true;
+
+            // visible the resultShamsiLbl
+            resultShamsiLbl.Visible = true;
+        }
+
+        private void shamsiMaskedText_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            // call the convertShamsiBtn_Click event
+            if (e.KeyChar == (char)Keys.Enter)
+            {
+                convertShamsiBtn_Click(sender, e);
+            }
+        }
+
+        private void convertMiladiBtn_Click(object sender, EventArgs e)
+        {
+            // this method is similar to convertShamsiBtn_Click but it converts the miladi date to shamsi date
+            resultMiladiLbl.Visible = false;
+
+            if (!miladiMaskedText.MaskCompleted)
+            {
+                miladiMaskedText.Focus();
+                resultMiladiLbl.Enabled = true;
+                resultMiladiLbl.Text = "Please enter a valid date";
+                resultMiladiLbl.Visible = true;
+                return;
+            }
+
+            resultMiladiLbl.Text = "";
+            resultMiladiLbl.Enabled = false;
+            resultMiladiLbl.Visible = false;
+
+            string miladiDateStr = miladiMaskedText.Text;
+            miladiDateStr = miladiDateStr.Replace(",", ".");
+
+            PersianCalendar pc = new PersianCalendar();
+
+            int year = Convert.ToInt32(miladiDateStr.Split('.')[2]);
+            int month = Convert.ToInt32(miladiDateStr.Split('.')[1]);
+            int day = Convert.ToInt32(miladiDateStr.Split('.')[0]);
+
+            DateTime miladiDateTime = new DateTime(year, month, day);
+
+            // convert the miladiDateTime to shamsiDateTime
+            int yearShamsi = pc.GetYear(miladiDateTime);
+            int monthShamsi = pc.GetMonth(miladiDateTime);
+            int dayShamsi = pc.GetDayOfMonth(miladiDateTime);
+
+            // set resultMiladiLbl result: dayShamsi/monthShamsi/yearShamsi (dd.mm.YYYY)
+            resultMiladiLbl.Text = "Result: " + dayShamsi.ToString() + "/" + monthShamsi.ToString() + "/" + yearShamsi.ToString() + " (dd.mm.YYYY)";
+            resultMiladiLbl.Enabled = true;
+            resultMiladiLbl.Visible = true;
+
+        }
+
+        private void miladiMaskedText_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            // call the convertMiladiBtn_Click event
+            if (e.KeyChar == (char)Keys.Enter)
+            {
+                convertMiladiBtn_Click(sender, e);
             }
         }
     }
