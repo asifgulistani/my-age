@@ -38,7 +38,7 @@ Introducing the **MyAge** app, which aims to address the challenges associated w
 
 ## Installation
 
-To use the MyAge app, simply clone this repository to your local machine and follow the installation instructions in the provided documentation.
+Navigate to Releases section and download the binary file with .exe extension (It may comprised in zip file .rar, .zip)
 
 ## Contributions
 
